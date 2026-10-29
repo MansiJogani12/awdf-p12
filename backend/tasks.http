@@ -1,0 +1,72 @@
+# Open in VS Code with the REST Client extension, or copy into Postman / Thunder Client.
+@base = http://localhost:5000
+
+### 1. Register -> 201
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{ "email": "student@charusat.edu.in", "password": "secret123" }
+
+### 2. Login -> 200 { token }
+# @name login
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{ "email": "student@charusat.edu.in", "password": "secret123" }
+
+### The token from the login response (REST Client fills this in automatically)
+@token = {{login.response.body.token}}
+
+### 3. Current user -> 200
+GET {{base}}/auth/me
+Authorization: Bearer {{token}}
+
+### 4. Protected route without a token -> 401
+GET {{base}}/tasks
+
+### 5. Protected route with the token -> 200
+GET {{base}}/tasks
+Authorization: Bearer {{token}}
+
+### 6. Create a task -> 201
+POST {{base}}/tasks
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "title": "Protected task", "priority": "high" }
+
+### 7. Malformed body (missing title) -> 400 before reaching MongoDB
+POST {{base}}/tasks
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "description": "no title here" }
+
+### 8. Tampered token -> 401
+GET {{base}}/tasks
+Authorization: Bearer {{token}}x
+
+### 9. Send this 3 times: first X-Cache: MISS, then HIT (compare the response times)
+GET {{base}}/tasks
+Authorization: Bearer {{token}}
+
+### 10. Single task, cached separately under its own key
+GET {{base}}/tasks/<paste-an-_id-here>
+Authorization: Bearer {{token}}
+
+### 11. Cache hit/miss counters
+GET {{base}}/debug/cache
+
+### 12. Event-driven notification: response returns at once, watch the server console
+POST {{base}}/tasks
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "title": "Send weekly report" }
+
+### 13. Triggers the 'error' listener (title contains fail-notify) — API still returns 201
+POST {{base}}/tasks
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "title": "fail-notify demo" }

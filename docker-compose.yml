@@ -1,0 +1,60 @@
+# Start everything with:  docker compose up --build
+# Then open http://localhost:5173
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: taskdb
+    ports:
+      - "27017:27017" # optional: lets MongoDB Compass on the host connect
+    volumes:
+      - mongo-data:/data/db # named volume: tasks survive container restarts
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app-network
+
+  backend:
+    build: ./backend
+    container_name: task-api
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      # "mongodb" is the service name above. Inside the Docker network, localhost would mean
+      # the backend container itself, not the database.
+      MONGO_URI: mongodb://mongodb:27017/taskdb
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me}
+      JWT_EXPIRES_IN: 1h
+      CACHE_TTL: 60
+      NOTIFY_DELAY_MS: 2000
+    depends_on:
+      mongodb:
+        condition: service_healthy # wait until MongoDB actually answers, not just "started"
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # The browser runs on the host, so it reaches the API through the host-mapped port
+        VITE_API_URL: http://localhost:5000
+    container_name: task-ui
+    ports:
+      - "5173:80" # host 5173 -> nginx 80 inside the container
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:

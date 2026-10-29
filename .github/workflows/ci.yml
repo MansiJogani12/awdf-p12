@@ -1,0 +1,60 @@
+name: CI Pipeline
+
+# Runs on every push to main and on pull requests targeting main
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Lint backend
+        working-directory: backend
+        run: |
+          npm ci
+          npm run lint
+      - name: Lint frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run lint
+
+  build-and-test:
+    needs: lint # only runs if linting passed
+    runs-on: ubuntu-latest
+
+    # A throwaway MongoDB for the integration tests
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run backend tests
+        working-directory: backend
+        run: npm test
+        env:
+          MONGO_URI: mongodb://localhost:27017/taskdb_test
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
