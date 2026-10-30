@@ -1,5 +1,5 @@
 export const profile = {
-  name: 'Heet',
+  name: 'Mansi',
   tagline: 'B.Tech student building for the web.',
   bio: 'I am a student at CHARUSAT exploring modern web development. I enjoy turning ideas into small, fast and well-structured interfaces with React.',
   email: 'student@charusat.edu.in',
