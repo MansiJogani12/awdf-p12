@@ -65,8 +65,8 @@ describe('tasks (full flow)', () => {
 
   test('GET /tasks returns 200 and an empty list for a new user', async () => {
     const res = await auth(request(app).get('/tasks'));
-    //expect(res.statusCode).toBe(200);
-	-expect(res.statusCode).toBe(201);
+    expect(res.statusCode).toBe(200);
+	//expect(res.statusCode).toBe(201);
     expect(res.body).toEqual([]);
   });
 
