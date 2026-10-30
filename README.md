@@ -51,5 +51,4 @@ After your first push, add screenshots of a red (failed) and a green (passed) ru
 * **Why earlier than manual testing?** It runs on every push, within minutes, on a clean machine. Problems show up while the change is small and the author still remembers it.
 * **Wrong test path?** Jest prints "No tests found" and exits 1, which fails the **same step** as a real test failure. Only the log tells the two apart.
 =======
-# awdf-p12
->>>>>>> 6d064e9d7738c7cddcea63e8e38b83aa6cb759e9
+
